@@ -55,7 +55,7 @@ To run the script, you need to have the following software installed:
     python new_peps_classifier.py path/to/protein_sequences.fa
     ```
 
-    Replace `path/to/protein_sequences.fa` with the path to your `.fa` file.
+    Replace `path/to/protein_sequences.fa` with the path to your `.fa` file. You can try the demo `.fa` file in `../demo/antifu.fa`
 
 3. **Output:** The results will be saved in an Excel file named `prediction_results.xlsx` in the `data` directory. Each sheet in the Excel file corresponds to a different model, showing the sequence, predicted class, and probability.
 
@@ -63,11 +63,11 @@ To run the script, you need to have the following software installed:
 
 Ensure that the following model files are present in the repository directory:
 
-- `model1.pki`
-- `model2.pki`
-- `model3.pki`
-- `model4.pki`
-- `model5.pki`
+- `biLSTMATT.pkl`
+- `LSTMmodel.pkl`
+- `biLSTMmodel.pkl`
+- `biLSTMmodel.pkl`
+- `RandomForestModel.pkl`
 
 These models should be pre-trained and saved using PyTorch.
 
