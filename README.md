@@ -63,11 +63,11 @@ To run the script, you need to have the following software installed:
 
 Ensure that the following model files are present in the repository directory:
 
-- `model1.pth`
-- `model2.pth`
-- `model3.pth`
-- `model4.pth`
-- `model5.pth`
+- `model1.pki`
+- `model2.pki`
+- `model3.pki`
+- `model4.pki`
+- `model5.pki`
 
 These models should be pre-trained and saved using PyTorch.
 
