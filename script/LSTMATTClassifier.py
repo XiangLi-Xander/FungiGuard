@@ -48,9 +48,12 @@ def train_model(model, X_train, y_train, num_epochs,batch_size):
         if (epoch + 1) % 10 == 0:
             print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, num_epochs, loss.item()))
 
-    torch.save(model.state_dict(),"../models/LSTMATT.pth")
+    # 保存模型到 .pkl 文件
+    with open('../models/LSTMATT.pkl', 'wb') as f:
+        pickle.dump(model, f)
 
     return loss_list
+
 
 # 评估
 def evaluate_model(model, X, y,name):

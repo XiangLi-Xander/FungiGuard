@@ -1,13 +1,9 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import pickle
 import numpy as np
 import pandas as pd
-from load_and_plot import *
-import seaborn as sns
-import torch.optim as optim
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+from load_and_plot import *
 
 # 训练模型
 def train_model(model, X_train, y_train):
@@ -27,13 +23,14 @@ def predict_new_data(model, X_new):
     probabilities = model.predict_proba(X_new)[:, 1]
     return torch.tensor(outputs), torch.tensor(probabilities)
 
+# 读取数据
 data1 = pd.read_excel('../data/no.xlsx')
 data2 = pd.read_excel('../data/antifu.xlsx')
 # data1 = pd.read_excel('data/no_remaining.xlsx')
 # data2 = pd.read_excel('data/antifu_remaining.xlsx')
 maxseqlen = 100
 seq2num(data1, data2, maxseqlen)
-inputseq ='seq2num.csv'
+inputseq = 'seq2num.csv'
 X_train, y_train, X_test, y_test = data_load(inputseq)
 
 # 设置参数
@@ -44,23 +41,29 @@ param_grid = {
     'min_samples_leaf': [1, 2, 4]
 }
 
+# 实例化模型
 model = GridSearchCV(RandomForestClassifier(), param_grid, refit=True, verbose=3)
 model = train_model(model, X_train, y_train)
 
 # 保存训练好的模型
-torch.save(model, '../models/RandomForestModel.pth')
+with open('../models/RandomForestModel.pkl', 'wb') as f:
+    pickle.dump(model, f)
 
+# 评估模型
 labels, predicted, probabilities = evaluate_model(model, X_test, y_test, "X_test")
-evaluate_results = pd.DataFrame({'labels': labels.numpy(), 
-                                  'predicted': predicted, 
-                                  'probability': probabilities.numpy()})
+evaluate_results = pd.DataFrame({
+    'labels': labels.numpy(),
+    'predicted': predicted.numpy(),
+    'probability': probabilities.numpy()
+})
 
 evaluate_results.to_csv('RandomForest_evaluation_results.csv', index=False)
 
+# 使用模型进行预测
 # new_data = pd.read_excel('data/all_peps.xlsx')
 # X_new = new_data_load(new_data, maxseqlen)
 # predicted_labels, predicted_prob = predict_new_data(model, X_new)
-# new_data['predicted_label'] = predicted_labels
+# new_data['predicted_label'] = predicted_labels.numpy()
 # new_data['predicted_prob'] = predicted_prob.numpy()
 # new_data.to_excel('data/RandomForest_peps_with_predictions.xlsx', index=False)
 
