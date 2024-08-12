@@ -52,7 +52,7 @@ To run the script, you need to have the following software installed:
 2. **Run the script:** Execute the Python script from the command line, providing the path to your `.fa` file.
 
     ```bash
-    python script.py path/to/protein_sequences.fa
+    python new_peps_classifier.py path/to/protein_sequences.fa
     ```
 
     Replace `path/to/protein_sequences.fa` with the path to your `.fa` file.
