@@ -5,8 +5,8 @@ from Bio import SeqIO
 import torch
 import sys
 # 从模型文件导入模型类
-from biLSTMATTClassifier import BiLSTMATTClassifier
-from biLSTMClassifier import BiLSTMClassifier
+from biLSTMATTClassifier import biLSTMATTClassifier
+from biLSTMClassifier import LSTMClassifier
 from LSTMATTClassifier import LSTMATTClassifier
 from LSTMClassifier import LSTMClassifier
 
