@@ -57,7 +57,7 @@ evaluate_results = pd.DataFrame({
     'probability': probabilities.numpy()
 })
 
-evaluate_results.to_csv('RandomForest_evaluation_results.csv', index=False)
+evaluate_results.to_csv('../data/RandomForest_evaluation_results.csv', index=False)
 
 # 使用模型进行预测
 # new_data = pd.read_excel('data/all_peps.xlsx')

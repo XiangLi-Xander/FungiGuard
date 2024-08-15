@@ -103,7 +103,7 @@ labels,predicted,probability=evaluate_model(model, X_test, y_test,"X_test") #评
 evaluate_results = pd.DataFrame({'labels': labels.numpy(), 
     'predicted': predicted.numpy(), 
     'probability': probability.detach().numpy()})
-evaluate_results.to_csv('data/LSTM_evaluation_results.csv', index=False)
+evaluate_results.to_csv('../data/LSTM_evaluation_results.csv', index=False)
 # # 使用模型进行预测 # 包括两列，分别是id_seq
 # new_data = pd.read_excel('data/all_peps.xlsx')
 # X_new = new_data_load(new_data, maxseqlen)
