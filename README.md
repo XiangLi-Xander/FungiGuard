@@ -63,11 +63,11 @@ To run the script, you need to have the following software installed:
 
 Ensure that the following model files are present in the repository directory:
 
-- `biLSTMATT.pkl`
-- `LSTMmodel.pkl`
-- `biLSTMmodel.pkl`
-- `biLSTMmodel.pkl`
-- `RandomForestModel.pkl`
+- `lstm.pth`
+- `lstmatt.pth`
+- `bilstm.pth`
+- `biLSTMATT.pth`
+- `rf_model.pkl`
 
 These models should be pre-trained and saved using PyTorch.
 
