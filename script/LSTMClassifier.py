@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-import pickle
 import torch
 import torch.nn as nn
 import numpy as np
 import pandas as pd
-from load_and_plot import *
-import seaborn as sns
 import torch.optim as optim
 import torch.nn.functional as F
+from load_and_plot import *  # Assumes custom functions are defined here
 
 
 class LSTMClassifier(nn.Module):
+    """Define a simple LSTM model for classification."""
+    
     def __init__(self, input_size, hidden_size, output_size):
         super(LSTMClassifier, self).__init__()
         self.hidden_size = hidden_size
@@ -19,17 +19,17 @@ class LSTMClassifier(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
+        """Perform a forward pass through the LSTM network."""
         output, (h_n, _) = self.lstm(x)
-        # 取最后一个时刻的隐藏状态作为输出
-        hn = h_n[-1]
-        hn = F.gelu(hn)  # 应用GELU激活函数
-        hn = self.dropout(hn)  # 添加Dropout层
+        hn = h_n[-1]  # Take the last hidden state
+        hn = F.gelu(hn)  # Apply GELU activation function
+        hn = self.dropout(hn)  # Apply dropout for regularization
         output = self.fc(hn)
         return output
 
 
-# 训练模型
-def train_model(model, X_train, y_train, num_epochs,batch_size):
+def train_model(model, X_train, y_train, num_epochs, batch_size):
+    """Train the LSTM model with the given training data."""
     loss_list = []
     for epoch in range(num_epochs):
         for i in range(0, len(X_train), batch_size):
@@ -41,78 +41,64 @@ def train_model(model, X_train, y_train, num_epochs,batch_size):
             loss.backward()
             optimizer.step()
         loss_list.append(loss.item())
-
-        if (epoch + 1) % 10 == 0:
-            print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, num_epochs, loss.item()))
-
-    # 保存模型到 .pkl 文件
-    with open('../models/LSTMmodel.pkl', 'wb') as f:
-        pickle.dump(model, f)
-
+    
+    torch.save(model.state_dict(), '../models/lstm.pth')
     return loss_list
 
-# 评估
-def evaluate_model(model, X, y,name):
+def evaluate_model(model, X, y):
+    """Evaluate the model on the test data."""
     model.eval()
     with torch.no_grad():
         inputs = torch.from_numpy(X.astype(np.float64)).float().unsqueeze(1)
         labels = torch.from_numpy(y).long()
         outputs = model(inputs)
-        # print(outputs)
         _, predicted = torch.max(outputs.data, 1)
-        accuracy = (predicted == labels).sum().item() / labels.size(0)
-        probability = torch.nn.functional.softmax(outputs, dim=1)[:, 1]  # 获取预测为正例的，softmax进行统计
-
-    # print(' {} Accuracy: {:.2f}%'.format(name,accuracy * 100))
-    # print("labels:",labels)
-    # print("predicted:",predicted)
-    return labels,predicted,probability
-
-# 预测
-def predict_new_data(model, X_new):
-    inputs = torch.from_numpy(X_new.values.astype(np.float64)).float().unsqueeze(1)
-    outputs = model(inputs)
-    _, predicted = torch.max(outputs, 1)
-    probability = torch.nn.functional.softmax(outputs, dim=1)[:, 1]  # 获取预测为正例的，softmax进行统计
+        probability = F.softmax(outputs, dim=1)[:, 1]  # Get probabilities for the positive class
     
-    return predicted, probability
+    return labels, predicted, probability
 
-
-
-# data1 = pd.read_excel('data/no_remaining.xlsx')
-# data2 = pd.read_excel('data/antifu_remaining.xlsx')
+# Load and preprocess data
 data1 = pd.read_excel('../data/no.xlsx')
 data2 = pd.read_excel('../data/antifu.xlsx')
-maxseqlen = 100 # 最长的蛋白序列长度
-seq2num(data1,data2,maxseqlen)
-inputseq ='seq2num.csv'
-X_train,y_train,X_test,y_test=data_load(inputseq)
-# 设置参数
-input_size = X_train.shape[1]  #特征数
-output_size = 2    #分类数
-# output_size = len(np.unique(y_train)) #分类数
+maxseqlen = 100  # Maximum length of protein sequences
+seq2num(data1, data2, maxseqlen)
+inputseq = 'seq2num.csv'
+X_train, y_train, X_test, y_test = data_load(inputseq)
+
+# Model parameters
+input_size = 100  # Number of input features
+output_size = 2  # Number of output classes
 hidden_size = 16
 num_epochs = 1000
 batch_size = 32
-print("input_size,output_size",input_size,output_size)
+
+# Initialize and train the model
 model = LSTMClassifier(input_size, hidden_size, output_size)
-criterion = nn.CrossEntropyLoss() #损失函数
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001) #优化器
-loss_list = train_model(model, X_train, y_train, num_epochs,batch_size) #训练
-labels,predicted,probability=evaluate_model(model, X_test, y_test,"X_test") #评估测试集
-evaluate_results = pd.DataFrame({'labels': labels.numpy(), 
+criterion = nn.CrossEntropyLoss()  # Loss function
+optimizer = optim.Adam(model.parameters(), lr=0.001)  # Optimizer
+loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)
+
+# Evaluate the model
+labels, predicted, probability = evaluate_model(model, X_test, y_test)
+
+# Save evaluation results
+evaluate_results = pd.DataFrame({
+    'labels': labels.numpy(), 
     'predicted': predicted.numpy(), 
-    'probability': probability.detach().numpy()})
+    'probability': probability.detach().numpy()
+})
 evaluate_results.to_csv('../data/LSTM_evaluation_results.csv', index=False)
-# # 使用模型进行预测 # 包括两列，分别是id_seq
+
+# Optionally predict new data
 # new_data = pd.read_excel('data/all_peps.xlsx')
 # X_new = new_data_load(new_data, maxseqlen)
 # predicted_labels, predicted_prob = predict_new_data(model, X_new)
 # new_data['predicted_label'] = predicted_labels.numpy()
 # new_data['predicted_prob'] = predicted_prob.detach().numpy()
 # new_data.to_excel('data/LSTM_peps_with_predictions.xlsx', index=False)
-# # 绘图
-# plot_loss(loss_list,"fig/LSTM_confusion.png")
-# plot_confusion(labels,predicted,"fig/LSTM_loss.png")
+
+# Optional plotting
+# plot_loss(loss_list, "fig/LSTM_loss.png")
+# plot_confusion(labels, predicted, "fig/LSTM_confusion.png")
 # plot_auc_curve(labels, probability, "fig/LSTM_AUC.png")
-# # drawScatter([labels, predicted], ['true', 'pred'],"fig/LSTM_pre.png")
+# drawScatter([labels, predicted], ['true', 'pred'], "fig/LSTM_pre.png")

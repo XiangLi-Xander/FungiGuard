@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
-import pickle
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import pandas as pd
-import pickle
-from load_and_plot import *
 import seaborn as sns
 import torch.optim as optim
 
-# 定义模型
+# Define the model
 class biLSTMATTClassifier(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(biLSTMATTClassifier, self).__init__()
@@ -25,15 +22,13 @@ class biLSTMATTClassifier(nn.Module):
         hn = torch.cat((h_n[0], h_n[1]), dim=1)
         hn = F.gelu(hn)
         hn = self.dropout(hn)
-        # 添加 Attention 机制
         attn_weights = F.softmax(self.attention_layer(hn), dim=0).unsqueeze(2)
-        output = output.permute(1, 0, 2) # 调整 output 的维度用于计算加权和
+        output = output.permute(1, 0, 2)  # Adjust dimensions for weighted sum
         attn_output = torch.sum(attn_weights * output, dim=1)
-
         output = self.fc(attn_output)
         return output
 
-# 训练模型
+# Train the model
 def train_model(model, X_train, y_train, num_epochs, batch_size):
     loss_list = []
     for epoch in range(num_epochs):
@@ -46,18 +41,11 @@ def train_model(model, X_train, y_train, num_epochs, batch_size):
             loss.backward()
             optimizer.step()
         loss_list.append(loss.item())
-
-        if (epoch + 1) % 10 == 0:
-            print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, num_epochs, loss.item()))
-
-    # 保存模型为 pkl 文件
-    with open("../models/biLSTMATT.pkl", 'wb') as f:
-        pickle.dump(model, f)
-
+    torch.save(model.state_dict(), '../models/bilstmatt.pth')
     return loss_list
 
-# 评估
-def evaluate_model(model, X, y, name):
+# Evaluate the model
+def evaluate_model(model, X, y):
     model.eval()
     with torch.no_grad():
         inputs = torch.from_numpy(X.astype(np.float64)).float().unsqueeze(1)
@@ -65,40 +53,34 @@ def evaluate_model(model, X, y, name):
         outputs = model(inputs)
         _, predicted = torch.max(outputs.data, 1)
         accuracy = (predicted == labels).sum().item() / labels.size(0)
-        probability = torch.nn.functional.softmax(outputs, dim=1)[:, 1]  # 获取预测为正例的，softmax进行统计
-
+        probability = torch.nn.functional.softmax(outputs, dim=1)[:, 1]
     return labels, predicted, probability
 
-# 预测
-def predict_new_data(model, X_new):
-    inputs = torch.from_numpy(X_new.values.astype(np.float64)).float().unsqueeze(1)
-    outputs = model(inputs)
-    _, predicted = torch.max(outputs, 1)
-    probability = torch.nn.functional.softmax(outputs, dim=1)[:, 1]  # 获取预测为正例的，softmax进行统计
-    
-    return predicted, probability
-
+# Load data
 data1 = pd.read_excel('../data/no.xlsx')
 data2 = pd.read_excel('../data/antifu.xlsx')
-maxseqlen = 100 # 最长的蛋白序列长度
+maxseqlen = 100  # Maximum protein sequence length
 seq2num(data1, data2, maxseqlen)
 inputseq = 'seq2num.csv'
 X_train, y_train, X_test, y_test = data_load(inputseq)
 
-# 设置参数
-input_size = X_train.shape[1]  # 特征数
-output_size = 2    # 分类数
+# Set parameters
+input_size = X_train.shape[1]  # Number of features
+output_size = 2  # Number of classes
 hidden_size = 16
 num_epochs = 1000
 batch_size = 32
-print("input_size, output_size", input_size, output_size)
-model = biLSTMATTClassifier(input_size, hidden_size, output_size)
-criterion = nn.CrossEntropyLoss() # 损失函数
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001) # 优化器
-loss_list = train_model(model, X_train, y_train, num_epochs, batch_size) # 训练
-labels, predicted, probability = evaluate_model(model, X_test, y_test, "X_test") # 评估测试集
 
-evaluate_results = pd.DataFrame({'labels': labels.numpy(), 
-                                  'predicted': predicted.numpy(), 
-                                  'probability': probability.detach().numpy()})
+model = biLSTMATTClassifier(input_size, hidden_size, output_size)
+criterion = nn.CrossEntropyLoss()  # Loss function
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # Optimizer
+
+loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)  # Train
+labels, predicted, probability = evaluate_model(model, X_test, y_test)  # Evaluate
+
+evaluate_results = pd.DataFrame({
+    'labels': labels.numpy(), 
+    'predicted': predicted.numpy(), 
+    'probability': probability.detach().numpy()
+})
 evaluate_results.to_csv('../data/biLSTMATT_evaluation_results.csv', index=False)
