@@ -41,7 +41,8 @@ To run the script, you need to have the following software installed:
 
 ## Usage
 
-1. **Prepare your `.fa` file:** Ensure your protein sequences are in a `.fa` file format.
+1. **Prepare your `.fa` file:** Ensure your protein sequences are in a `.fa` file format.  
+   If you want to change the training dataset, please update the sequence information in `FungiGuard/data/antifu.xlsx` and `FungiGuard/data/no.xlsx`.
 
 2. **Run the script:** Execute the Python script from the command line, providing the path to your `.fa` file.
 
@@ -50,9 +51,10 @@ To run the script, you need to have the following software installed:
     python new_peps_classifier.py path/to/protein_sequences.fa
     ```
 
-    Replace `path/to/protein_sequences.fa` with the path to your `.fa` file. You can try the demo `.fa` file in `../demo/antifu.fa`
+    Replace `path/to/protein_sequences.fa` with the path to your `.fa` file. You can try the demo `.fa` file in `../demo/antifu.fa`.
 
 3. **Output:** The results will be saved in an Excel file named `prediction_results.xlsx` in the `data` directory. Each sheet in the Excel file corresponds to a different model, showing the sequence, predicted class, and probability.
+
 
 ## Model Files
 
