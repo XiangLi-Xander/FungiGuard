@@ -39,12 +39,6 @@ To run the script, you need to have the following software installed:
     pip install -r requirements.txt
     ```
 
-    If you don't have a `requirements.txt`, manually install the following packages:
-
-    ```bash
-    pip install numpy pandas biopython torch
-    ```
-
 ## Usage
 
 1. **Prepare your `.fa` file:** Ensure your protein sequences are in a `.fa` file format.
