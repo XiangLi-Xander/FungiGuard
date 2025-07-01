@@ -27,8 +27,8 @@ To run the script, you need to have the following software installed:
 2. **Create a virtual environment (recommended):**
 
     ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    conda create -n fungiguard python=3.8
+    conda activate fungiguard
     ```
 
 3. **Install required packages:**
