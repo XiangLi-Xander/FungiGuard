@@ -55,7 +55,7 @@ def main(file_path):
     results = []
     for model_type, model_path in model_paths.items():
         if model_type == 'rf':
-            model = load_rf_model(model_path)
+            model = load_model(model_path)
             predictions, probabilities = predict_rf(model, sequences)
             print(f"RFClassifier model loaded from {model_path}")
         else:
