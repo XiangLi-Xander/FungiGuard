@@ -39,22 +39,43 @@ To run the script, you need to have the following software installed:
     pip install -r requirements.txt
     ```
 
+# FungiGuard Prediction Tool
+
 ## Usage
 
-1. **Prepare your `.fa` file:** Ensure your protein sequences are in a `.fa` file format.  
-   If you want to change the training dataset, please update the sequence information in `FungiGuard/data/antifu.xlsx` and `FungiGuard/data/no.xlsx`.
+1. **Prepare your `.fa` file:**  
+   Ensure your protein sequences are in FASTA format (`.fa` or `.fasta`).  
+   If you want to update or change the training dataset, please modify the sequence and label data in `FungiGuard/data/antifu.xlsx` and `FungiGuard/data/no.xlsx`.
 
-2. **Run the script:** Execute the Python script from the command line, providing the path to your `.fa` file.
+2. **Run the prediction script:**  
+   Execute the Python script from the command line, specifying your `.fa` file and the trained model you want to use.
 
     ```bash
     cd script
-    python new_peps_classifier.py path/to/protein_sequences.fa
+    python new_peps_classifier.py path/to/protein_sequences.fa --model path/to/model_file --output path/to/output.csv
     ```
 
-    Replace `path/to/protein_sequences.fa` with the path to your `.fa` file. You can try the demo `.fa` file in `../demo/antifu.fa`.
+    - Replace `path/to/protein_sequences.fa` with your FASTA file path (e.g., `../demo/antifu.fa`).  
+    - Replace `path/to/model_file` with one of the trained model files:  
+      - Random Forest: `../models/rf_model.pkl`  
+      - LSTM: `../models/lstm.pth`  
+      - LSTM + Attention: `../models/lstmatt.pth`  
+      - BiLSTM: `../models/bilstm.pth`  
+      - BiLSTM + Attention: `../models/bilstmatt.pth`  
+    - Replace `path/to/output.csv` with the desired output CSV file path (default is `predictions.csv`).
 
-3. **Output:** The results will be saved in an Excel file named `prediction_results.xlsx` in the `data` directory. Each sheet in the Excel file corresponds to a different model, showing the sequence, predicted class, and probability.
+3. **Optional parameters:**  
+   You can specify the maximum sequence length (default 100) with `--max_len`:
 
+    ```bash
+    python new_peps_classifier.py ../demo/antifu.fa --model ../models/bilstmatt.pth --output bilstmatt_result.csv --max_len 120
+    ```
+
+4. **Output:**  
+   The prediction results will be saved as a CSV file at the specified output path. The CSV contains:  
+   - Sequence IDs (from the FASTA headers)  
+   - Predicted class labels (e.g., 0 or 1)  
+   - Prediction probabilities for the positive class
 
 ## Model Files
 
