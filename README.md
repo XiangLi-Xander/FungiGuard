@@ -46,7 +46,7 @@ To run the script, you need to have the following software installed:
 1. **Prepare your `.fa` file:**  
    Ensure your protein sequences are in FASTA format (`.fa` or `.fasta`).  
    If you want to update or change the training dataset, please modify the sequence and label data in `FungiGuard/data/antifu.xlsx` and `FungiGuard/data/no.xlsx`.
-   Then run the following command to preprocess the data:
+   Then run the following command to preprocess the data (for cpu):
    ```bash
    cd script
    sh star.sh
