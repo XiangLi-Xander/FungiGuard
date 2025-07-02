@@ -68,7 +68,11 @@ To run the script, you need to have the following software installed:
    You can specify the maximum sequence length (default 100) with `--max_len`:
 
     ```bash
-    python new_peps_classifier.py ../demo/antifu.fa --model ../models/bilstmatt.pth --output bilstmatt_result.csv --max_len 100
+    python new_peps_classifier.py  ../demo/antifu.fa --model ../models/rf_model.pkl --output rf_result.csv  --max_len 100
+    python new_peps_classifier.py  ../demo/antifu.fa --model ../models/lstm.pth --output lstm_result.csv
+    python new_peps_classifier.py  ../demo/antifu.fa --model ../models/lstmatt.pth --output lstmatt_result.csv
+    python new_peps_classifier.py  ../demo/antifu.fa --model ../models/bilstm.pth --output bilstm_result.csv
+    python new_peps_classifier.py  ../demo/antifu.fa --model ../models/bilstmatt.pth --output bilstmatt_result.csv
     ```
 
 4. **Output:**  
