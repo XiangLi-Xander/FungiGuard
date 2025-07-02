@@ -47,7 +47,8 @@ To run the script, you need to have the following software installed:
    Ensure your protein sequences are in FASTA format (`.fa` or `.fasta`).  
    If you want to update or change the training dataset, please modify the sequence and label data in `FungiGuard/data/antifu.xlsx` and `FungiGuard/data/no.xlsx`.
    Then run the following command to preprocess the data:
-   ```bash 
+   ```bash
+   cd script
    sh star.sh
    ```
 
@@ -55,7 +56,6 @@ To run the script, you need to have the following software installed:
    Execute the Python script from the command line, specifying your `.fa` file and the trained model you want to use.
 
     ```bash
-    cd script
     python new_peps_classifier.py path/to/protein_sequences.fa --model path/to/model_file --output path/to/output.csv
     ```
 
