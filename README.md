@@ -46,8 +46,12 @@ To run the script, you need to have the following software installed:
 1. **Prepare your `.fa` file:**  
    Ensure your protein sequences are in FASTA format (`.fa` or `.fasta`).  
    If you want to update or change the training dataset, please modify the sequence and label data in `FungiGuard/data/antifu.xlsx` and `FungiGuard/data/no.xlsx`.
+   Then run the following command to preprocess the data:
+   ```bash 
+   sh star.sh
+   ```
 
-2. **Run the prediction script:**  
+3. **Run the prediction script:**  
    Execute the Python script from the command line, specifying your `.fa` file and the trained model you want to use.
 
     ```bash
@@ -64,7 +68,7 @@ To run the script, you need to have the following software installed:
       - BiLSTM + Attention: `../models/bilstmatt.pth`  
     - Replace `path/to/output.csv` with the desired output CSV file path (default is `predictions.csv`).
 
-3. **Optional parameters:**  
+4. **Optional parameters:**  
    You can specify the maximum sequence length (default 100) with `--max_len`:
 
     ```bash
@@ -75,7 +79,7 @@ To run the script, you need to have the following software installed:
     python new_peps_classifier.py  ../demo/antifu.fa --model ../models/bilstmatt.pth --output bilstmatt_result.csv  --max_len 100
     ```
 
-4. **Output:**  
+5. **Output:**  
    The prediction results will be saved as a CSV file at the specified output path. The CSV contains:  
    - Sequence IDs (from the FASTA headers)  
    - Predicted class labels (e.g., 0 or 1)  
