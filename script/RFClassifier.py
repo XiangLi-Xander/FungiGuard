@@ -44,6 +44,13 @@ def save_model(model, path):
     joblib.dump(model, path)
     print(f"Model saved to {path}")
 
+def load_rf_model(path):
+    """Load the saved Random Forest model from a file."""
+    model = joblib.load(path)
+    print(f"Random Forest model loaded from {path}")
+    return model
+
+
 # Read and process data
 data1 = pd.read_excel('../data/no.xlsx')
 data2 = pd.read_excel('../data/antifu.xlsx')
