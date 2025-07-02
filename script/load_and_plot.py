@@ -79,36 +79,38 @@ def data_load(inputseq):
 
 def read_fasta(file_path, max_len=100):
     """
-    Read sequences from a FASTA file, encode them, and pad/truncate to max_len.
-
-    Args:
-        file_path (str): Path to the FASTA file.
-        max_len (int): Maximum length of the sequences.
+    Read sequences from a FASTA file, encode them, and return IDs and padded/truncated sequences.
 
     Returns:
-        list: List of encoded sequences.
+        list of IDs, list of encoded numpy arrays
     """
     sequences = []
+    ids = []
 
     with open(file_path, 'r') as file:
         sequence = ''
+        header = ''
         for line in file:
-            if line.startswith('>'):  # Skip header lines
+            if line.startswith('>'):
                 if sequence:
                     encoded_seq = integer_encode(sequence[:max_len])
                     if len(encoded_seq) < max_len:
                         encoded_seq = np.pad(encoded_seq, (0, max_len - len(encoded_seq)), 'constant', constant_values=0)
                     sequences.append(encoded_seq)
+                    ids.append(header)
+                header = line.strip().lstrip('>')
                 sequence = ''
             else:
                 sequence += line.strip()
-        if sequence:  # Add the last sequence
+        if sequence:
             encoded_seq = integer_encode(sequence[:max_len])
             if len(encoded_seq) < max_len:
                 encoded_seq = np.pad(encoded_seq, (0, max_len - len(encoded_seq)), 'constant', constant_values=0)
             sequences.append(encoded_seq)
+            ids.append(header)
 
-    return sequences
+    return ids, sequences
+
 
 def plot_confusion(labels, predicted, path):
     """

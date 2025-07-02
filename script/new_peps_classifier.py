@@ -1,78 +1,142 @@
 # -*- coding:utf-8 -*-
-import torch
 import numpy as np
 import pandas as pd
-from load_and_plot import *
-from LSTMClassifier import LSTMClassifier
-from LSTMATTClassifier import LSTMATTClassifier
-from biLSTMClassifier import biLSTMClassifier
-from biLSTMATTClassifier import biLSTMATTClassifier
-from RFClassifier import *
 import joblib
 import argparse
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from load_and_plot import read_fasta
 
-def predict_with_model(model, sequences):
-    """Predict using the provided PyTorch model."""
-    predictions, probabilities = [], []
-    for seq in sequences:
-        inputs = torch.tensor(seq, dtype=torch.float32).unsqueeze(0).unsqueeze(1)
-        outputs = model(inputs)
-        _, predicted = torch.max(outputs, 1)
-        probability = torch.nn.functional.softmax(outputs, dim=1)[:, 1].item()
-        predictions.append(predicted.item())
-        probabilities.append(probability)
-    return predictions, probabilities
+# ===== 模型定义 =====
+class LSTMClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(LSTMClassifier, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
+        self.dropout = nn.Dropout(0.5)
+        self.fc = nn.Linear(hidden_size, output_size)
 
+    def forward(self, x):
+        _, (h_n, _) = self.lstm(x)
+        out = self.dropout(h_n[-1])
+        return self.fc(out)
 
-def load_model(model_type, model_path, input_size, hidden_size, output_size):
-    """Load a PyTorch model from the given path."""
-    model_classes = {
-        'lstm': LSTMClassifier,
-        'lstmatt': LSTMATTClassifier,
-        'bilstm': biLSTMClassifier,
-        'bilstmatt': biLSTMATTClassifier
-    }
-    model_class = model_classes.get(model_type)
-    if model_class is None:
-        raise ValueError(f"Unknown model type: {model_type}")
-    
-    model = model_class(input_size, hidden_size, output_size)
-    model.load_state_dict(torch.load(model_path))
+class LSTMATTClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(LSTMATTClassifier, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
+        self.attention_layer = nn.Linear(hidden_size, 1)
+        self.dropout = nn.Dropout(0.5)
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        output, _ = self.lstm(x)
+        attn_weights = F.softmax(self.attention_layer(output), dim=1)
+        attn_output = torch.sum(attn_weights * output, dim=1)
+        out = self.dropout(attn_output)
+        return self.fc(out)
+
+class biLSTMClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(biLSTMClassifier, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True, bidirectional=True)
+        self.dropout = nn.Dropout(0.5)
+        self.fc = nn.Linear(hidden_size * 2, output_size)
+
+    def forward(self, x):
+        _, (h_n, _) = self.lstm(x)
+        out = torch.cat((h_n[0], h_n[1]), dim=1)
+        out = self.dropout(out)
+        return self.fc(out)
+
+class biLSTMATTClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(biLSTMATTClassifier, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True, bidirectional=True)
+        self.attention_layer = nn.Linear(hidden_size * 2, 1)
+        self.dropout = nn.Dropout(0.5)
+        self.fc = nn.Linear(hidden_size * 2, output_size)
+
+    def forward(self, x):
+        output, (h_n, _) = self.lstm(x)
+        hn = torch.cat((h_n[0], h_n[1]), dim=1)
+        hn = F.gelu(hn)
+        hn = self.dropout(hn)
+        attn_weights = F.softmax(self.attention_layer(hn), dim=0).unsqueeze(2)
+        output = output.permute(1, 0, 2)
+        attn_output = torch.sum(attn_weights * output, dim=1)
+        output = self.fc(attn_output)
+        return output
+
+# ===== 预测函数 =====
+def predict_sklearn(model, sequences):
+    X = np.array(sequences)
+    preds = model.predict(X)
+    probs = model.predict_proba(X)[:, 1]
+    return preds, probs
+
+def predict_pytorch(model, sequences):
     model.eval()
-    print(f"{model_type} model loaded from {model_path}")
-    return model
+    with torch.no_grad():
+        X = np.array(sequences)
+        inputs = torch.from_numpy(X.astype(np.float32)).unsqueeze(1)
+        outputs = model(inputs)
+        probs = F.softmax(outputs, dim=1)[:, 1]
+        _, preds = torch.max(outputs, 1)
+    return preds.numpy(), probs.numpy()
 
-def main(file_path):
-    sequences = read_fasta(file_path)
-    model_paths = {
-        'lstm': '../models/lstm.pth',
-        'lstmatt': '../models/lstmatt.pth',
-        'bilstm': '../models/bilstm.pth',
-        'bilstmatt': '../models/bilstmatt.pth',
-        'rf': '../models/rf_model.pkl'
-    }
+# ===== 主函数 =====
+def main(fasta_file, model_path, output_path, max_len=100):
+    ids, sequences = read_fasta(fasta_file, max_len=max_len)
+    print(f"📄 Loaded {len(sequences)} sequences from {fasta_file}")
 
-    results = []
-    for model_type, model_path in model_paths.items():
-        if model_type == 'rf':
-            model = load_model(model_path)
-            predictions, probabilities = predict_rf(model, sequences)
-            print(f"RFClassifier model loaded from {model_path}")
+    model_path_lower = model_path.lower()
+
+    if model_path_lower.endswith(".pkl"):
+        model = joblib.load(model_path)
+        print("✅ Loaded Random Forest model")
+        preds, probs = predict_sklearn(model, sequences)
+
+    elif model_path_lower.endswith(".pth"):
+        input_size = max_len
+        hidden_size = 16
+        output_size = 2
+
+        if "bilstmatt" in model_path_lower:
+            model = biLSTMATTClassifier(input_size, hidden_size, output_size)
+        elif "bilstm" in model_path_lower:
+            model = biLSTMClassifier(input_size, hidden_size, output_size)
+        elif "lstmatt" in model_path_lower:
+            model = LSTMATTClassifier(input_size, hidden_size, output_size)
+        elif "lstm" in model_path_lower:
+            model = LSTMClassifier(input_size, hidden_size, output_size)
         else:
-            model = load_model(model_type, model_path, 100, 16, 2)
-            predictions, probabilities = predict_with_model(model, sequences)
-        results.extend({
-            'Sequence': i + 1,
-            'Model': model_type,
-            'Predicted': pred,
-            'Probability': prob if prob is not None else 'N/A'
-        } for i, (pred, prob) in enumerate(zip(predictions, probabilities)))
+            raise ValueError("Unrecognized PyTorch model filename pattern.")
 
-    pd.DataFrame(results).to_excel('model_predictions.xlsx', index=False)
-    print("Prediction results have been saved to model_predictions.xlsx")
+        model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        print(f"✅ Loaded PyTorch model: {model_path}")
+        preds, probs = predict_pytorch(model, sequences)
 
+    else:
+        raise ValueError("Model file must be either .pkl or .pth")
+
+    # 保存结果
+    df = pd.DataFrame({
+        'ID': ids,
+        'Prediction': preds,
+        'Probability': probs
+    })
+    df.to_csv(output_path, index=False)
+    print(f"📊 Results saved to {output_path}")
+
+# ===== 命令行参数 =====
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Predict sequences using trained models")
-    parser.add_argument('file_path', type=str, help='Path to the input FASTA file')
+    import argparse
+    parser = argparse.ArgumentParser(description="Predict AFPs using one of 5 trained models")
+    parser.add_argument("fasta", help="Input FASTA file path")
+    parser.add_argument("--model", required=True, help="Path to the trained model file (.pkl or .pth)")
+    parser.add_argument("--output", default="predictions.csv", help="Output CSV file")
+    parser.add_argument("--max_len", type=int, default=100, help="Max sequence length")
     args = parser.parse_args()
-    main(args.file_path)
+
+    main(args.fasta, args.model, args.output, args.max_len)
