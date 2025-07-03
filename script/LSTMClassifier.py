@@ -57,48 +57,50 @@ def evaluate_model(model, X, y):
     
     return labels, predicted, probability
 
-# Load and preprocess data
-data1 = pd.read_excel('../data/no.xlsx')
-data2 = pd.read_excel('../data/antifu.xlsx')
-maxseqlen = 100  # Maximum length of protein sequences
-seq2num(data1, data2, maxseqlen)
-inputseq = 'seq2num.csv'
-X_train, y_train, X_test, y_test = data_load(inputseq)
 
-# Model parameters
-input_size = 100  # Number of input features
-output_size = 2  # Number of output classes
-hidden_size = 16
-num_epochs = 1000
-batch_size = 32
+if __name__ == "__main__":
+    # Load and preprocess data
+    data1 = pd.read_excel('../data/no.xlsx')
+    data2 = pd.read_excel('../data/antifu.xlsx')
+    maxseqlen = 100  # Maximum length of protein sequences
+    seq2num(data1, data2, maxseqlen)
+    inputseq = 'seq2num.csv'
+    X_train, y_train, X_test, y_test = data_load(inputseq)
 
-# Initialize and train the model
-model = LSTMClassifier(input_size, hidden_size, output_size)
-criterion = nn.CrossEntropyLoss()  # Loss function
-optimizer = optim.Adam(model.parameters(), lr=0.001)  # Optimizer
-loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)
+    # Model parameters
+    input_size = 100  # Number of input features
+    output_size = 2  # Number of output classes
+    hidden_size = 16
+    num_epochs = 1000
+    batch_size = 32
 
-# Evaluate the model
-labels, predicted, probability = evaluate_model(model, X_test, y_test)
+    # Initialize and train the model
+    model = LSTMClassifier(input_size, hidden_size, output_size)
+    criterion = nn.CrossEntropyLoss()  # Loss function
+    optimizer = optim.Adam(model.parameters(), lr=0.001)  # Optimizer
+    loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)
 
-# Save evaluation results
-evaluate_results = pd.DataFrame({
-    'labels': labels.numpy(), 
-    'predicted': predicted.numpy(), 
-    'probability': probability.detach().numpy()
-})
-evaluate_results.to_csv('../data/LSTM_evaluation_results.csv', index=False)
+    # Evaluate the model
+    labels, predicted, probability = evaluate_model(model, X_test, y_test)
 
-# Optionally predict new data
-# new_data = pd.read_excel('data/all_peps.xlsx')
-# X_new = new_data_load(new_data, maxseqlen)
-# predicted_labels, predicted_prob = predict_new_data(model, X_new)
-# new_data['predicted_label'] = predicted_labels.numpy()
-# new_data['predicted_prob'] = predicted_prob.detach().numpy()
-# new_data.to_excel('data/LSTM_peps_with_predictions.xlsx', index=False)
+    # Save evaluation results
+    evaluate_results = pd.DataFrame({
+        'labels': labels.numpy(), 
+        'predicted': predicted.numpy(), 
+        'probability': probability.detach().numpy()
+    })
+    evaluate_results.to_csv('../data/LSTM_evaluation_results.csv', index=False)
 
-# Optional plotting
-# plot_loss(loss_list, "fig/LSTM_loss.png")
-# plot_confusion(labels, predicted, "fig/LSTM_confusion.png")
-# plot_auc_curve(labels, probability, "fig/LSTM_AUC.png")
-# drawScatter([labels, predicted], ['true', 'pred'], "fig/LSTM_pre.png")
+    # Optionally predict new data
+    # new_data = pd.read_excel('data/all_peps.xlsx')
+    # X_new = new_data_load(new_data, maxseqlen)
+    # predicted_labels, predicted_prob = predict_new_data(model, X_new)
+    # new_data['predicted_label'] = predicted_labels.numpy()
+    # new_data['predicted_prob'] = predicted_prob.detach().numpy()
+    # new_data.to_excel('data/LSTM_peps_with_predictions.xlsx', index=False)
+
+    # Optional plotting
+    # plot_loss(loss_list, "fig/LSTM_loss.png")
+    # plot_confusion(labels, predicted, "fig/LSTM_confusion.png")
+    # plot_auc_curve(labels, probability, "fig/LSTM_AUC.png")
+    # drawScatter([labels, predicted], ['true', 'pred'], "fig/LSTM_pre.png")

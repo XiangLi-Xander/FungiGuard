@@ -55,34 +55,35 @@ def evaluate_model(model, X, y):
     
     return labels, predicted, probability
 
-# Prepare data
-data1 = pd.read_excel('../data/no.xlsx')
-data2 = pd.read_excel('../data/antifu.xlsx')
-maxseqlen = 100
-seq2num(data1, data2, maxseqlen)
-inputseq = 'seq2num.csv'
-X_train, y_train, X_test, y_test = data_load(inputseq)
+if __name__ == "__main__":
+    # Prepare data
+    data1 = pd.read_excel('../data/no.xlsx')
+    data2 = pd.read_excel('../data/antifu.xlsx')
+    maxseqlen = 100
+    seq2num(data1, data2, maxseqlen)
+    inputseq = 'seq2num.csv'
+    X_train, y_train, X_test, y_test = data_load(inputseq)
 
-# Set model parameters
-input_size = X_train.shape[1]
-output_size = 2
-hidden_size = 16
-num_epochs = 1000
-batch_size = 32
+    # Set model parameters
+    input_size = X_train.shape[1]
+    output_size = 2
+    hidden_size = 16
+    num_epochs = 1000
+    batch_size = 32
 
-# Initialize and train the model
-model = biLSTMClassifier(input_size, hidden_size, output_size)
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)
+    # Initialize and train the model
+    model = biLSTMClassifier(input_size, hidden_size, output_size)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)
 
-# Evaluate the model
-labels, predicted, probability = evaluate_model(model, X_test, y_test)
+    # Evaluate the model
+    labels, predicted, probability = evaluate_model(model, X_test, y_test)
 
-# Save evaluation results
-evaluate_results = pd.DataFrame({
-    'labels': labels.numpy(), 
-    'predicted': predicted.numpy(), 
-    'probability': probability.detach().numpy()
-})
-evaluate_results.to_csv('../data/biLSTM_evaluation_results.csv', index=False)
+    # Save evaluation results
+    evaluate_results = pd.DataFrame({
+        'labels': labels.numpy(), 
+        'predicted': predicted.numpy(), 
+        'probability': probability.detach().numpy()
+    })
+    evaluate_results.to_csv('../data/biLSTM_evaluation_results.csv', index=False)

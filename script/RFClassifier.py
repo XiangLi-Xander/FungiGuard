@@ -50,29 +50,30 @@ def load_rf_model(path):
     print(f"Random Forest model loaded from {path}")
     return model
 
+if __name__ == "__main__":
 
-# Read and process data
-data1 = pd.read_excel('../data/no.xlsx')
-data2 = pd.read_excel('../data/antifu.xlsx')
-maxseqlen = 100
-seq2num(data1, data2, maxseqlen)
-inputseq = 'seq2num.csv'
-X_train, y_train, X_test, y_test = data_load(inputseq)
+    # Read and process data
+    data1 = pd.read_excel('../data/no.xlsx')
+    data2 = pd.read_excel('../data/antifu.xlsx')
+    maxseqlen = 100
+    seq2num(data1, data2, maxseqlen)
+    inputseq = 'seq2num.csv'
+    X_train, y_train, X_test, y_test = data_load(inputseq)
 
-# Train and save the model
-model = train_model(X_train, y_train)
-save_model(model.best_estimator_, '../models/rf_model.pkl')
+    # Train and save the model
+    model = train_model(X_train, y_train)
+    save_model(model.best_estimator_, '../models/rf_model.pkl')
 
-# Evaluate the model
-y_true, y_pred, probabilities, accuracy = evaluate_model(model, X_test, y_test)
-evaluate_results = pd.DataFrame({
-    'labels': y_true,
-    'predicted': y_pred,
-    'probability': probabilities
-})
-evaluate_results.to_csv('../data/RandomForest_evaluation_results.csv', index=False)
-print(f"Evaluation results saved to RandomForest_evaluation_results.csv with accuracy {accuracy:.4f}")
+    # Evaluate the model
+    y_true, y_pred, probabilities, accuracy = evaluate_model(model, X_test, y_test)
+    evaluate_results = pd.DataFrame({
+        'labels': y_true,
+        'predicted': y_pred,
+        'probability': probabilities
+    })
+    evaluate_results.to_csv('../data/RandomForest_evaluation_results.csv', index=False)
+    print(f"Evaluation results saved to RandomForest_evaluation_results.csv with accuracy {accuracy:.4f}")
 
-# Optional plotting
-# plot_confusion(y_true, y_pred, "fig/RandomForest_confusion.png")
-# plot_auc_curve(y_true, probabilities, "fig/RandomForest_AUC.png")
+    # Optional plotting
+    # plot_confusion(y_true, y_pred, "fig/RandomForest_confusion.png")
+    # plot_auc_curve(y_true, probabilities, "fig/RandomForest_AUC.png")

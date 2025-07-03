@@ -13,14 +13,12 @@ from LSTMATTClassifier import LSTMATTClassifier
 from LSTMClassifier import LSTMClassifier
 from RFClassifier import load_rf_model
 
-# ========= sklearn 预测 =========
 def predict_sklearn(model, sequences):
     X = np.array(sequences)
     preds = model.predict(X)
     probs = model.predict_proba(X)[:, 1]
     return preds, probs
 
-# ========= PyTorch 预测 =========
 def predict_pytorch(model, sequences):
     model.eval()
     with torch.no_grad():
@@ -31,7 +29,25 @@ def predict_pytorch(model, sequences):
         _, preds = torch.max(outputs, 1)
     return preds.numpy(), probs.numpy()
 
-# ========= 主函数 =========
+# GPU
+# def predict_pytorch(model, sequences, batch_size=64):
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     model.to(device)
+#     model.eval()
+#     all_preds = []
+#     all_probs = []
+#     with torch.no_grad():
+#         X = np.array(sequences, dtype=np.float32)
+#         for i in range(0, len(X), batch_size):
+#             batch = torch.from_numpy(X[i:i+batch_size]).unsqueeze(1).to(device)
+#             outputs = model(batch)
+#             probs = F.softmax(outputs, dim=1)[:, 1]
+#             _, preds = torch.max(outputs, 1)
+#             all_preds.extend(preds.cpu().numpy())
+#             all_probs.extend(probs.cpu().numpy())
+#     return np.array(all_preds), np.array(all_probs)
+
+
 def main(fasta_file, model_path, output_path, max_len=100):
     ids, sequences = read_fasta(fasta_file, max_len=max_len)
     print(f"📄 Loaded {len(sequences)} sequences from {fasta_file}")
@@ -74,7 +90,6 @@ def main(fasta_file, model_path, output_path, max_len=100):
     df.to_csv(output_path, index=False)
     print(f"📊 Results saved to {output_path}")
 
-# ========= 命令行入口 =========
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict using 5 types of models")
     parser.add_argument("fasta", help="Input FASTA file")

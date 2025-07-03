@@ -57,31 +57,32 @@ def evaluate_model(model, X, y):
         probability = torch.nn.functional.softmax(outputs, dim=1)[:, 1]
     return labels, predicted, probability
 
-# Load data
-data1 = pd.read_excel('../data/no.xlsx')
-data2 = pd.read_excel('../data/antifu.xlsx')
-maxseqlen = 100  # Maximum protein sequence length
-seq2num(data1, data2, maxseqlen)
-inputseq = 'seq2num.csv'
-X_train, y_train, X_test, y_test = data_load(inputseq)
+if __name__ == "__main__":
+    # Load data
+    data1 = pd.read_excel('../data/no.xlsx')
+    data2 = pd.read_excel('../data/antifu.xlsx')
+    maxseqlen = 100  # Maximum protein sequence length
+    seq2num(data1, data2, maxseqlen)
+    inputseq = 'seq2num.csv'
+    X_train, y_train, X_test, y_test = data_load(inputseq)
 
-# Set parameters
-input_size = X_train.shape[1]  # Number of features
-output_size = 2  # Number of classes
-hidden_size = 16
-num_epochs = 1000
-batch_size = 32
+    # Set parameters
+    input_size = X_train.shape[1]  # Number of features
+    output_size = 2  # Number of classes
+    hidden_size = 16
+    num_epochs = 1000
+    batch_size = 32
 
-model = biLSTMATTClassifier(input_size, hidden_size, output_size)
-criterion = nn.CrossEntropyLoss()  # Loss function
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # Optimizer
+    model = biLSTMATTClassifier(input_size, hidden_size, output_size)
+    criterion = nn.CrossEntropyLoss()  # Loss function
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # Optimizer
 
-loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)  # Train
-labels, predicted, probability = evaluate_model(model, X_test, y_test)  # Evaluate
+    loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)  # Train
+    labels, predicted, probability = evaluate_model(model, X_test, y_test)  # Evaluate
 
-evaluate_results = pd.DataFrame({
-    'labels': labels.numpy(), 
-    'predicted': predicted.numpy(), 
-    'probability': probability.detach().numpy()
-})
-evaluate_results.to_csv('../data/biLSTMATT_evaluation_results.csv', index=False)
+    evaluate_results = pd.DataFrame({
+        'labels': labels.numpy(), 
+        'predicted': predicted.numpy(), 
+        'probability': probability.detach().numpy()
+    })
+    evaluate_results.to_csv('../data/biLSTMATT_evaluation_results.csv', index=False)

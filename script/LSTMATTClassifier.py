@@ -70,48 +70,49 @@ def predict_new_data(model, X_new):
     
     return predicted, probability
 
-# Load and preprocess data
-data1 = pd.read_excel('../data/no.xlsx')
-data2 = pd.read_excel('../data/antifu.xlsx')
-maxseqlen = 100  # Maximum length of protein sequences
-seq2num(data1, data2, maxseqlen)
-inputseq = 'seq2num.csv'
-X_train, y_train, X_test, y_test = data_load(inputseq)
+if __name__ == "__main__":
+    # Load and preprocess data
+    data1 = pd.read_excel('../data/no.xlsx')
+    data2 = pd.read_excel('../data/antifu.xlsx')
+    maxseqlen = 100  # Maximum length of protein sequences
+    seq2num(data1, data2, maxseqlen)
+    inputseq = 'seq2num.csv'
+    X_train, y_train, X_test, y_test = data_load(inputseq)
 
-# Set model parameters
-input_size = X_train.shape[1]  # Number of features
-output_size = 2  # Number of classes
-hidden_size = 16
-num_epochs = 1000
-batch_size = 32
+    # Set model parameters
+    input_size = X_train.shape[1]  # Number of features
+    output_size = 2  # Number of classes
+    hidden_size = 16
+    num_epochs = 1000
+    batch_size = 32
 
-# Initialize and train the model
-model = LSTMATTClassifier(input_size, hidden_size, output_size)
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)
+    # Initialize and train the model
+    model = LSTMATTClassifier(input_size, hidden_size, output_size)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    loss_list = train_model(model, X_train, y_train, num_epochs, batch_size)
 
-# Evaluate the model
-labels, predicted, probability = evaluate_model(model, X_test, y_test)
+    # Evaluate the model
+    labels, predicted, probability = evaluate_model(model, X_test, y_test)
 
-# Save evaluation results
-evaluate_results = pd.DataFrame({
-    'labels': labels.numpy(), 
-    'predicted': predicted.numpy(), 
-    'probability': probability.detach().numpy()
-})
-evaluate_results.to_csv('../data/LSTMATT_evaluation_results.csv', index=False)
+    # Save evaluation results
+    evaluate_results = pd.DataFrame({
+        'labels': labels.numpy(), 
+        'predicted': predicted.numpy(), 
+        'probability': probability.detach().numpy()
+    })
+    evaluate_results.to_csv('../data/LSTMATT_evaluation_results.csv', index=False)
 
-# Optionally predict new data
-# new_data = pd.read_excel('data/all_peps.xlsx')
-# X_new = new_data_load(new_data, maxseqlen)
-# predicted_labels, predicted_prob = predict_new_data(model, X_new)
-# new_data['predicted_label'] = predicted_labels.numpy()
-# new_data['predicted_prob'] = predicted_prob.detach().numpy()
-# new_data.to_excel('data/LSTMATT_peps_with_predictions.xlsx', index=False)
+    # Optionally predict new data
+    # new_data = pd.read_excel('data/all_peps.xlsx')
+    # X_new = new_data_load(new_data, maxseqlen)
+    # predicted_labels, predicted_prob = predict_new_data(model, X_new)
+    # new_data['predicted_label'] = predicted_labels.numpy()
+    # new_data['predicted_prob'] = predicted_prob.detach().numpy()
+    # new_data.to_excel('data/LSTMATT_peps_with_predictions.xlsx', index=False)
 
-# Optional plotting
-# plot_loss(loss_list, "fig/LSTMATT_loss.png")
-# plot_confusion(labels, predicted, "fig/LSTMATT_confusion.png")
-# plot_auc_curve(labels, probability, "fig/LSTMATT_AUC.png")
-# drawScatter([labels, predicted], ['true', 'pred'], "fig/LSTM_pre.png")
+    # Optional plotting
+    # plot_loss(loss_list, "fig/LSTMATT_loss.png")
+    # plot_confusion(labels, predicted, "fig/LSTMATT_confusion.png")
+    # plot_auc_curve(labels, probability, "fig/LSTMATT_AUC.png")
+    # drawScatter([labels, predicted], ['true', 'pred'], "fig/LSTM_pre.png")
