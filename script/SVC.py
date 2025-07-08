@@ -55,7 +55,7 @@ if __name__ == "__main__":
                                       'predicted': predicted, 
                                       'probability': probabilities.numpy()})
 
-    evaluate_results.to_csv('data/SVM_evaluation_results.csv', index=False)
+    evaluate_results.to_csv('../data/SVM_evaluation_results.csv', index=False)
 
     # new_data = pd.read_excel('data/all_peps.xlsx')
     # new_data = pd.read_excel('data/peps.xlsx')
