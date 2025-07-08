@@ -30,8 +30,8 @@ def predict_new_data(model, X_new):
 
 if __name__ == "__main__":
 
-    data1 = pd.read_excel('data/no.xlsx')
-    data2 = pd.read_excel('data/antifu.xlsx')
+    data1 = pd.read_excel('../data/no.xlsx')
+    data2 = pd.read_excel('../data/antifu.xlsx')
     # data1 = pd.read_excel('data/no_remaining.xlsx')
     # data2 = pd.read_excel('data/antifu_remaining.xlsx')
     maxseqlen = 100
