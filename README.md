@@ -78,18 +78,8 @@ To run the script, you need to have the following software installed:
     python new_peps_classifier.py  ../demo/antifu.fa --model ../models/bilstm.pth --output bilstm_result.csv  --max_len 100
     python new_peps_classifier.py  ../demo/antifu.fa --model ../models/bilstmatt.pth --output bilstmatt_result.csv  --max_len 100
     ```
-5. **Summarizing Multiple Results**
 
-To summarize predictions across multiple models, use the `summary.py` script. This script processes all `result.csv` files in a given directory and computes:
-
-- The **average probability** for each result file  
-- A **final prediction** (`1` if average probability > 0.5, else `0`)
-
-    ```bash
-    python summary.py <directory_path>
-    ```
-
-6. **Output:**  
+5. **Output:**  
    The prediction results will be saved as a CSV file at the specified output path. The CSV contains:  
    - Sequence IDs (from the FASTA headers)  
    - Predicted class labels (e.g., 0 or 1)  
